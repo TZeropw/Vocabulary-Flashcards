@@ -1,50 +1,82 @@
 'use client';
-
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import { Flashcard } from './types';
+import { useRouter } from 'next/navigation';
+import { BookOpen, Sparkles } from 'lucide-react';
 
-export default function HomePage() {
-  const [count, setCount] = useState(0);
+export default function RootPage() {
+  const router = useRouter();
+  const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState('');
 
-  // เช็คจำนวนคำศัพท์ที่มี
+  // ส่วนสำคัญ: ตรวจสอบว่าถ้าเคย Login แล้ว ให้เด้งไป Dashboard เลย
+  // ถ้าอยากเทสหน้า Login ให้ลบ localStorage หรือใช้โหมดไม่ระบุตัวตน (Incognito)
   useEffect(() => {
-    const saved = localStorage.getItem('vocab-data-v2');
-    if (saved) {
-      const data: Flashcard[] = JSON.parse(saved);
-      setCount(data.length);
+    const savedUser = localStorage.getItem('vocab-username');
+    if (savedUser) {
+      router.push('/dashboard');
     }
-  }, []);
+  }, [router]);
+
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim()) return;
+    
+    // บันทึกชื่อลงเครื่อง
+    localStorage.setItem('vocab-username', username);
+    router.push('/dashboard');
+  };
+
+  const handleGuest = () => {
+    localStorage.setItem('vocab-username', 'ผู้เยี่ยมชม');
+    router.push('/dashboard');
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      <Navbar />
-      
-      <main className="max-w-4xl mx-auto p-6 text-center">
-        <h1 className="text-5xl font-black text-gray-800 mb-4 mt-10">
-          พร้อมจะเก่งภาษาหรือยัง? 🚀
-        </h1>
-        <p className="text-xl text-gray-500 mb-12">
-          คุณมีคำศัพท์ในคลังสมองทั้งหมด <span className="font-bold text-indigo-600 text-3xl">{count}</span> คำ
-        </p>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-          {/* การ์ดปุ่มที่ 1: ไปเพิ่มคำ */}
-          <Link href="/add" className="group block bg-white border-2 border-indigo-100 hover:border-indigo-500 p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300">
-            <div className="text-4xl mb-4 group-hover:scale-110 transition">📝</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">จดคำศัพท์ใหม่</h2>
-            <p className="text-gray-500">เพิ่มคำศัพท์ที่คุณเพิ่งเจอมา เก็บไว้กันลืม</p>
-          </Link>
-
-          {/* การ์ดปุ่มที่ 2: ไปทบทวน */}
-          <Link href="/review" className="group block bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-8 rounded-2xl shadow-lg hover:shadow-indigo-500/50 transition-all duration-300 transform hover:-translate-y-1">
-            <div className="text-4xl mb-4 group-hover:scale-110 transition">▶️</div>
-            <h2 className="text-2xl font-bold mb-2">เริ่มทบทวน</h2>
-            <p className="text-indigo-100">ทดสอบความจำของคุณด้วย Flashcards</p>
-          </Link>
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      {/* ส่วนหัวแสดงชื่อแอป */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center gap-2 mb-2">
+          <BookOpen className="text-primary" size={40} />
+          <Sparkles className="text-secondary" size={24} />
         </div>
-      </main>
+        <h1 className="text-4xl font-black text-gray-800">คลังคำศัพท์</h1>
+        <p className="text-gray-500 mt-2">รวบรวมและจัดการคำศัพท์ของคุณ</p>
+      </div>
+
+      {/* บล็อกหน้าจอ Login */}
+      <div className="bg-white w-full max-w-md rounded-[2rem] shadow-xl p-8 border border-gray-100">
+        <div className="flex bg-gray-100 p-1 rounded-2xl mb-8">
+          <button onClick={() => setIsLogin(true)} className={`flex-1 py-3 rounded-xl font-bold transition ${isLogin ? 'bg-white text-primary shadow-sm' : 'text-gray-400'}`}>
+            เข้าสู่ระบบ
+          </button>
+          <button onClick={() => setIsLogin(false)} className={`flex-1 py-3 rounded-xl font-bold transition ${!isLogin ? 'bg-white text-primary shadow-sm' : 'text-gray-400'}`}>
+            สมัครสมาชิก
+          </button>
+        </div>
+
+        <form onSubmit={handleAuth} className="space-y-6">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">ชื่อผู้ใช้</label>
+            <input type="text" placeholder="ตั้งชื่อเล่นของคุณ..." value={username} onChange={(e) => setUsername(e.target.value)} className="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary outline-none" required />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">รหัสผ่าน</label>
+            <input type="password" placeholder="••••••••" className="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary outline-none" />
+          </div>
+          <button type="submit" className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg hover:bg-primary-dark shadow-lg shadow-primary/25 transition">
+            {isLogin ? 'เข้าสู่ระบบ' : 'สร้างบัญชี'}
+          </button>
+        </form>
+
+        <div className="relative my-10 text-center">
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+          <span className="relative bg-white px-4 text-gray-300 text-xs uppercase font-medium">หรือ</span>
+        </div>
+
+        <button onClick={handleGuest} className="w-full bg-gray-50 text-gray-600 py-4 rounded-2xl font-bold hover:bg-gray-100 transition border border-gray-100">
+          ทดลองใช้งาน (ไม่ต้องสมัครสมาชิก)
+        </button>
+      </div>
     </div>
   );
 }

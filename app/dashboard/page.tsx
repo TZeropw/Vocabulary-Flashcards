@@ -91,7 +91,8 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
+      
+        
       {/* Action Buttons */}
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto px-4">
         {/* ปุ่มซ้าย: ไปหน้า Vocab*/}
