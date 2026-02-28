@@ -1,28 +1,36 @@
-'use client'; // ต้องมีบรรทัดนี้เพื่อใช้ usePathname ครับ
+'use client'; 
 import { usePathname } from 'next/navigation';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { BookOpen, User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 
+// เพิ่ม 2 บรรทัดนี้เพื่อเรียกใช้ระบบออกจากระบบของ Firebase
+import { auth } from '../lib/firebase'; 
+import { signOut } from 'firebase/auth';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   
-  // เช็คว่าถ้าเป็นหน้าแรก (/) ให้ถือว่าเป็นหน้า Login
   const isLoginPage = pathname === '/';
 
-  const handleLogout = () => {
-    localStorage.removeItem('vocab-username');
-    window.location.href = '/';
+  // อัปเดตฟังก์ชันออกจากระบบใหม่
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // 1. สั่งให้ Firebase ออกจากระบบ
+      localStorage.removeItem('vocab-username'); // 2. ลบชื่อจำลองในเครื่องทิ้ง
+      window.location.href = '/'; // 3. กลับไปหน้า Login
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการออกจากระบบ:", error);
+    }
   };
 
   return (
     <html lang="th">
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         
-        {/* --- แสดงเมนูเฉพาะหน้าฐานข้อมูล (ไม่ใช่หน้า Login) --- */}
         {!isLoginPage && (
           <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -38,9 +46,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     {typeof window !== 'undefined' ? localStorage.getItem('vocab-username') || 'ผู้ใช้' : 'ผู้ใช้'}
                   </span>
                 </div>
+                {/* ปุ่มออกจากระบบเรียกใช้ handleLogout ตัวใหม่ */}
                 <button 
                   onClick={handleLogout}
-                  className="text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1 text-sm font-medium"
+                  className="text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1 text-sm font-medium cursor-pointer"
                 >
                   <LogOut size={18} />
                   <span className="hidden sm:inline">ออกจากระบบ</span>

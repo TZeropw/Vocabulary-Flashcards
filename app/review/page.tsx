@@ -4,6 +4,11 @@ import { Flashcard } from '../types';
 import { Check, X, ArrowLeft, Play, Layers, Grid } from 'lucide-react';
 import Link from 'next/link';
 
+// --- เพิ่ม Import ของ Firebase ---
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+
 const CATEGORIES = [
   "ทั่วไป", "อาหารและเครื่องดื่ม", "การเดินทาง/ท่องเที่ยว",
   "การทำงาน/อาชีพ", "ของใช้ในบ้าน", "อารมณ์/ความรู้สึก",
@@ -17,10 +22,33 @@ export default function ReviewPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [score, setScore] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false); // เพิ่มสถานะโหลดข้อมูล
 
+  // โหลดข้อมูลจาก Firebase
   useEffect(() => {
-    const saved = localStorage.getItem('vocab-data-v3');
-    if (saved) setAllCards(JSON.parse(saved));
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // ดึงคำศัพท์เฉพาะของไอดีนี้
+          const q = query(collection(db, 'vocabularies'), where('userId', '==', user.uid));
+          const querySnapshot = await getDocs(q);
+          
+          const cards: Flashcard[] = [];
+          querySnapshot.forEach((doc) => {
+            cards.push({ id: doc.id, ...doc.data() } as Flashcard);
+          });
+          
+          setAllCards(cards);
+        } catch (error) {
+          console.error("โหลดข้อมูลล้มเหลว:", error);
+        }
+      } else {
+        setAllCards([]);
+      }
+      setIsLoaded(true); // โหลดเสร็จแล้ว
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const startGame = (category: string | null) => {
@@ -32,7 +60,7 @@ export default function ReviewPage() {
     }
 
     if (selected.length === 0) {
-      alert('ไม่มีคำศัพท์ในหมวดหมู่นี้ครับ');
+      alert('ไม่มีคำศัพท์ในหมวดหมู่นี้ครับ กรุณาเพิ่มคำศัพท์ก่อน');
       return;
     }
 
@@ -55,6 +83,11 @@ export default function ReviewPage() {
       }
     }, 300);
   };
+
+  // --- LOADING STATE ---
+  if (!isLoaded) {
+    return <div className="p-10 text-center text-gray-500 animate-pulse font-bold text-lg mt-20">กำลังเตรียมการ์ดคำศัพท์ของคุณ... 🃏</div>;
+  }
 
   // --- MENU STATE ---
   if (gameStatus === 'menu') {

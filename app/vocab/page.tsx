@@ -5,6 +5,10 @@ import FlashcardItem from '../components/FlashcardItem';
 import { Flashcard } from '../types';
 import { Search, Filter } from 'lucide-react';
 
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+
 const FILTER_CATEGORIES = [
   "ทั้งหมด", "ทั่วไป", "อาหารและเครื่องดื่ม", "การเดินทาง/ท่องเที่ยว",
   "การทำงาน/อาชีพ", "ของใช้ในบ้าน", "อารมณ์/ความรู้สึก",
@@ -17,30 +21,101 @@ export default function VocabPage() {
   const [selectedCategory, setSelectedCategory] = useState('ทั้งหมด');
   const [isLoaded, setIsLoaded] = useState(false);
   const [editingCard, setEditingCard] = useState<Flashcard | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('vocab-data-v3');
-    if (saved) setFlashcards(JSON.parse(saved));
-    setIsLoaded(true);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        try {
+          const q = query(collection(db, 'vocabularies'), where('userId', '==', user.uid));
+          const querySnapshot = await getDocs(q);
+          
+          const cards: Flashcard[] = [];
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            
+            // 🛠️ FIX: แปลงเวลา Firebase (Timestamp) ให้เป็น String เพื่อไม่ให้ React พัง
+            let formattedDate = '';
+            if (data.createdAt && data.createdAt.toDate) {
+              formattedDate = data.createdAt.toDate().toISOString();
+            }
+
+            cards.push({ 
+              id: doc.id, 
+              ...data, 
+              createdAt: formattedDate // ส่งเวลาที่แปลงแล้วกลับไป
+            } as Flashcard);
+          });
+          
+          setFlashcards(cards.reverse());
+        } catch (error) {
+          console.error("โหลดข้อมูลล้มเหลว:", error);
+        }
+      } else {
+        setUserId(null);
+        setFlashcards([]);
+      }
+      setIsLoaded(true);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (isLoaded) localStorage.setItem('vocab-data-v3', JSON.stringify(flashcards));
-  }, [flashcards, isLoaded]);
+  const handleAdd = async (newCard: Flashcard) => {
+    if (!userId) {
+      alert("กรุณาล็อกอินก่อนเพิ่มคำศัพท์");
+      return;
+    }
+    
+    try {
+      const { id, ...cardData } = newCard; 
+      
+      const docRef = await addDoc(collection(db, 'vocabularies'), {
+        ...cardData,
+        userId: userId,
+        createdAt: serverTimestamp() 
+      });
 
-  const handleAdd = (newCard: Flashcard) => {
-    setFlashcards([newCard, ...flashcards]);
+      // 🛠️ FIX: ตอนเพิ่มใหม่ ให้ใช้เวลาจำลองของเครื่องไปก่อน ไม่ใช้ serverTimestamp() ยัดใส่ React
+      const addedCard = { 
+        id: docRef.id, 
+        ...cardData, 
+        userId,
+        createdAt: new Date().toISOString()
+      } as Flashcard;
+      
+      setFlashcards([addedCard, ...flashcards]);
+    } catch (error) {
+      console.error("เพิ่มคำศัพท์ล้มเหลว:", error);
+      alert("เกิดข้อผิดพลาดในการเพิ่มคำศัพท์");
+    }
   };
 
-  const handleUpdate = (updatedCard: Flashcard) => {
-    setFlashcards(flashcards.map((card) => 
-      card.id === updatedCard.id ? updatedCard : card
-    ));
-    setEditingCard(null);
+  const handleUpdate = async (updatedCard: Flashcard) => {
+    try {
+      const cardRef = doc(db, 'vocabularies', String(updatedCard.id));
+      const { id, ...dataToUpdate } = updatedCard;
+      await updateDoc(cardRef, dataToUpdate);
+
+      setFlashcards(flashcards.map((card) => 
+        card.id === updatedCard.id ? updatedCard : card
+      ));
+      setEditingCard(null);
+    } catch (error) {
+      console.error("อัปเดตคำศัพท์ล้มเหลว:", error);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('ยืนยันที่จะลบคำนี้?')) setFlashcards(flashcards.filter(c => c.id !== id));
+  const handleDelete = async (id: any) => {
+    if (confirm('ยืนยันที่จะลบคำนี้?')) {
+      try {
+        await deleteDoc(doc(db, 'vocabularies', String(id)));
+        setFlashcards(flashcards.filter(c => c.id !== id));
+      } catch (error) {
+        console.error("ลบคำศัพท์ล้มเหลว:", error);
+      }
+    }
   };
 
   const handleStartEdit = (card: Flashcard) => {
@@ -54,7 +129,7 @@ export default function VocabPage() {
     return matchesSearch && matchesCategory;
   });
 
-  if (!isLoaded) return <div className="p-10 text-center text-gray-500 animate-pulse">กำลังโหลดข้อมูล...</div>;
+  if (!isLoaded) return <div className="p-10 text-center text-gray-500 animate-pulse font-bold text-lg">กำลังโหลดคำศัพท์ของคุณ...</div>;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -71,11 +146,11 @@ export default function VocabPage() {
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input type="text" placeholder="ค้นหาคำศัพท์..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none" />
+            <input type="text" placeholder="ค้นหาคำศัพท์..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition" />
           </div>
           <div className="relative min-w-[180px]">
             <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full pl-10 pr-8 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer bg-white">
+            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full pl-10 pr-8 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer bg-white transition">
               {FILTER_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
           </div>

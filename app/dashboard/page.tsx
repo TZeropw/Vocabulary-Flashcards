@@ -4,29 +4,61 @@ import { BookOpen, Flame, Star, ArrowRight, Library, PlayCircle } from 'lucide-r
 import { useEffect, useState } from 'react';
 import { Flashcard } from '../types';
 
+// --- เพิ่ม Import ของ Firebase ---
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+
 export default function DashboardPage() {
-  const [username, setUsername] = useState('ผู้ใช้งาน');
+  const [username, setUsername] = useState('กำลังโหลด...');
   const [stats, setStats] = useState({ total: 0 });
   const [randomWord, setRandomWord] = useState<Flashcard | null>(null);
   const [streak, setStreak] = useState(1);
 
   useEffect(() => {
-    const savedName = localStorage.getItem('vocab-username');
-    if (savedName) setUsername(savedName);
+    // 1. ตรวจสอบว่าใครล็อกอินอยู่ผ่าน Firebase
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // ตั้งชื่อผู้ใช้จากอีเมล
+        const displayName = user.email ? user.email.split('@')[0] : 'ผู้ใช้งาน';
+        setUsername(displayName);
 
-    const savedData = localStorage.getItem('vocab-data-v3');
-    if (savedData) {
-      const cards: Flashcard[] = JSON.parse(savedData);
-      setStats({ total: cards.length });
+        // 2. ดึงคำศัพท์จาก Firestore "เฉพาะของไอดีนี้"
+        try {
+          const q = query(collection(db, 'vocabularies'), where('userId', '==', user.uid));
+          const querySnapshot = await getDocs(q);
+          
+          const cards: Flashcard[] = [];
+          querySnapshot.forEach((doc) => {
+            // รวมไอดีของเอกสารเข้าไปในข้อมูลคำศัพท์ด้วย
+            cards.push({ id: doc.id, ...doc.data() } as Flashcard);
+          });
 
-      if (cards.length > 0) {
-        const randomIndex = Math.floor(Math.random() * cards.length);
-        setRandomWord(cards[randomIndex]);
+          setStats({ total: cards.length });
+
+          // สุ่มคำศัพท์มาแสดง 1 คำ
+          if (cards.length > 0) {
+            const randomIndex = Math.floor(Math.random() * cards.length);
+            setRandomWord(cards[randomIndex]);
+          } else {
+            setRandomWord(null);
+          }
+        } catch (error) {
+          console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
+        }
+      } else {
+        setUsername('ผู้เยี่ยมชม');
+        setStats({ total: 0 });
       }
-    }
+    });
+
     handleStreakCalculation();
+    
+    // คืนค่าฟังก์ชันเพื่อยกเลิกการติดตามเมื่อเปลี่ยนหน้า
+    return () => unsubscribe();
   }, []);
 
+  // ระบบ Streak เก็บในเครื่องไว้ก่อนเพื่อให้ง่ายต่อการคำนวณรายวัน
   const handleStreakCalculation = () => {
     const today = new Date().toDateString();
     const storedStreakData = localStorage.getItem('vocab-streak-data');
@@ -92,10 +124,8 @@ export default function DashboardPage() {
         </div>
       </div>
       
-        
       {/* Action Buttons */}
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto px-4">
-        {/* ปุ่มซ้าย: ไปหน้า Vocab*/}
         <Link href="/vocab" className="group bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition border border-gray-100 flex flex-col items-center text-center">
           <div className="bg-blue-50 w-20 h-20 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition duration-300">
             <Library size={40} className="text-blue-600" />
@@ -107,7 +137,6 @@ export default function DashboardPage() {
           </span>
         </Link>
 
-        {/* ปุ่มขวา: ไปหน้า Review*/}
         <Link href="/review" className="group bg-white p-8 rounded-3xl shadow-sm hover:shadow-xl transition border border-gray-100 flex flex-col items-center text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 bg-red-500 text-white text-xs px-3 py-1 rounded-bl-xl font-bold">HOT</div>
           <div className="bg-purple-50 w-20 h-20 rounded-3xl flex items-center justify-center mb-6 group-hover:scale-110 transition duration-300">
