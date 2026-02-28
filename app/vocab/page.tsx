@@ -45,7 +45,7 @@ export default function VocabPage() {
               id: doc.id, 
               ...data, 
               createdAt: formattedDate // ส่งเวลาที่แปลงแล้วกลับไป
-            } as Flashcard);
+            } as unknown as Flashcard);
           });
           
           setFlashcards(cards.reverse());
