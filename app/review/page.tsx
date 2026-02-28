@@ -35,7 +35,7 @@ export default function ReviewPage() {
           
           const cards: Flashcard[] = [];
           querySnapshot.forEach((doc) => {
-            cards.push({ id: doc.id, ...doc.data() } as Flashcard);
+            cards.push({ id: doc.id, ...doc.data() } as unknown as Flashcard);
           });
           
           setAllCards(cards);

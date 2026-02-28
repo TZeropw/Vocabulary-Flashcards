@@ -31,7 +31,7 @@ export default function DashboardPage() {
           const cards: Flashcard[] = [];
           querySnapshot.forEach((doc) => {
             // รวมไอดีของเอกสารเข้าไปในข้อมูลคำศัพท์ด้วย
-            cards.push({ id: doc.id, ...doc.data() } as Flashcard);
+            cards.push({ id: doc.id, ...doc.data() } as unknown as Flashcard);
           });
 
           setStats({ total: cards.length });
