@@ -20,6 +20,9 @@
 * **Icons:** Lucide-React
 * **Version Control:** Git & GitHub
 
+# 📖 Vocabulary Flashcards App (คลังคำศัพท์)
+🔗 **ทดลองใช้งานเว็บจริงได้ที่นี่:** [https://vocabulary-flashcards-five.vercel.app/](https://vocabulary-flashcards-five.vercel.app/)
+
 ## 🚀 วิธีการติดตั้งและรันโปรเจกต์ (Getting Started)
 
 หากต้องการดึงโปรเจกต์นี้ไปรันในเครื่องของคุณ ให้ทำตามขั้นตอนดังนี้:
@@ -31,12 +34,12 @@
 git clone [https://github.com/TZeropw/Vocabulary-Flashcards.git](https://github.com/TZeropw/Vocabulary-Flashcards.git)
 cd Vocabulary-Flashcards
 
-3. ติดตั้ง Dependencies
+**3. ติดตั้ง Dependencies**
 npm install
 
-4. ตั้งค่า Firebase
+**4. ตั้งค่า Firebase**
 เนื่องจากโปรเจกต์นี้ใช้ Firebase เป็นฐานข้อมูล คุณจำเป็นต้องตั้งค่าในไฟล์ lib/firebase.ts ให้ตรงกับโปรเจกต์ Firebase ของคุณ
 
-5. รันโปรเจกต์ (Development Server)
+**5. รันโปรเจกต์ (Development Server)**
 npm run dev
 จากนั้นเปิดเบราว์เซอร์และเข้าไปที่ http://localhost:3000
