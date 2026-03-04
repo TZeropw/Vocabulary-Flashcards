@@ -34,8 +34,6 @@ export default function VocabPage() {
           const cards: Flashcard[] = [];
           querySnapshot.forEach((doc) => {
             const data = doc.data();
-            
-            // 🛠️ FIX: แปลงเวลา Firebase (Timestamp) ให้เป็น String เพื่อไม่ให้ React พัง
             let formattedDate = '';
             if (data.createdAt && data.createdAt.toDate) {
               formattedDate = data.createdAt.toDate().toISOString();
@@ -44,7 +42,7 @@ export default function VocabPage() {
             cards.push({ 
               id: doc.id, 
               ...data, 
-              createdAt: formattedDate // ส่งเวลาที่แปลงแล้วกลับไป
+              createdAt: formattedDate 
             } as unknown as Flashcard);
           });
           
@@ -77,7 +75,6 @@ export default function VocabPage() {
         createdAt: serverTimestamp() 
       });
 
-      // 🛠️ FIX: ตอนเพิ่มใหม่ ให้ใช้เวลาจำลองของเครื่องไปก่อน ไม่ใช้ serverTimestamp() ยัดใส่ React
       const addedCard = { 
         id: docRef.id, 
         ...cardData, 
@@ -129,7 +126,7 @@ export default function VocabPage() {
     return matchesSearch && matchesCategory;
   });
 
-  if (!isLoaded) return <div className="p-10 text-center text-gray-500 animate-pulse font-bold text-lg">กำลังโหลดคำศัพท์ของคุณ...</div>;
+  if (!isLoaded) return <div className="p-10 text-center text-gray-500 dark:text-gray-400 animate-pulse font-bold text-lg">กำลังโหลดคำศัพท์ของคุณ...</div>;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -143,28 +140,28 @@ export default function VocabPage() {
       </div>
 
       <div className="lg:col-span-2 space-y-6">
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row gap-4 transition-colors">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input type="text" placeholder="ค้นหาคำศัพท์..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={20} />
+            <input type="text" placeholder="ค้นหาคำศัพท์..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-primary outline-none transition-colors" />
           </div>
           <div className="relative min-w-[180px]">
-            <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full pl-10 pr-8 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer bg-white transition">
+            <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
+            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full pl-10 pr-8 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer transition-colors">
               {FILTER_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="font-bold text-gray-700 px-2">
+          <h3 className="font-bold text-gray-700 dark:text-gray-300 px-2 transition-colors">
             {searchTerm || selectedCategory !== 'ทั้งหมด' ? 'ผลการค้นหา' : 'รายการล่าสุด'}
-            <span className="ml-2 bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-full">{filteredCards.length} คำ</span>
+            <span className="ml-2 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs px-2 py-1 rounded-full transition-colors">{filteredCards.length} คำ</span>
           </h3>
 
           {filteredCards.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-200">
-              <p className="text-gray-500 font-medium">ไม่พบคำศัพท์</p>
+            <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 transition-colors">
+              <p className="text-gray-500 dark:text-gray-400 font-medium">ไม่พบคำศัพท์</p>
             </div>
           ) : (
             <div className="grid gap-4">

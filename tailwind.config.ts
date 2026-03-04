@@ -1,6 +1,8 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: 'class',
+
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -17,7 +19,7 @@ const config: Config = {
         background: "#f3f4f6", // สีพื้นหลังเทาอ่อน
       },
       fontFamily: {
-        sans: ['"Prompt"', "sans-serif"], // ใช้ฟอนต์ Prompt ให้ดูทันสมัย
+        sans: ['"Prompt"', "sans-serif"],
       },
     },
   },
