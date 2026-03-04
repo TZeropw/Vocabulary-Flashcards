@@ -20,7 +20,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const displayName = user.email ? user.email.split('@')[0] : 'ผู้ใช้งาน';
+        const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ผู้ใช้งาน');
         setUsername(displayName);
 
         try {

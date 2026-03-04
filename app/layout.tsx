@@ -19,12 +19,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [username, setUsername] = useState('ผู้ใช้');
 
   useEffect(() => {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'dark') {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
+    const storedName = localStorage.getItem('vocab-username');
+    if (storedName) {
+      setUsername(storedName);
     }
   }, []);
 
@@ -90,8 +90,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   >
                     <User size={16} className="text-gray-400 dark:text-gray-300" />
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-200">
-                      {typeof window !== 'undefined' ? localStorage.getItem('vocab-username') || 'ผู้ใช้' : 'ผู้ใช้'}
-                    </span>
+                    {username}
+                  </span>
                     <ChevronDown size={14} className={`text-gray-400 dark:text-gray-300 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
 
@@ -101,6 +101,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       <div className="px-4 py-2 border-b border-gray-50 dark:border-gray-700 mb-1">
                         <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">บัญชีของคุณ</p>
                       </div>
+                      <Link 
+                        href="/profile" 
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 transition"
+                      >
+                        <User size={16} />
+                        โปรไฟล์และการตั้งค่า
+                      </Link>
                       <button 
                         onClick={handleLogout}
                         className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2 transition"
