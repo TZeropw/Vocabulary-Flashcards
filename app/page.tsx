@@ -53,57 +53,60 @@ export default function RootPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+    // ถอด bg-gray-50 ออก เพื่อให้มันใช้พื้นหลัง Gradient ตัวใหม่จาก layout.tsx
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-500">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center gap-2 mb-2">
-          <BookOpen className="text-primary" size={40} />
-          <Sparkles className="text-secondary" size={24} />
+          <BookOpen className="text-primary dark:text-primary-light transition-colors" size={40} />
+          <Sparkles className="text-secondary dark:text-yellow-400 transition-colors" size={24} />
         </div>
-        <h1 className="text-4xl font-black text-gray-800">คลังคำศัพท์</h1>
-        <p className="text-gray-500 mt-2">รวบรวมและจัดการคำศัพท์ของคุณ</p>
+        <h1 className="text-4xl font-black text-gray-800 dark:text-white transition-colors">คลังคำศัพท์</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-2 transition-colors">รวบรวมและจัดการคำศัพท์ของคุณ</p>
       </div>
 
-      <div className="bg-white w-full max-w-md rounded-[2rem] shadow-xl p-8 border border-gray-100">
-        <div className="flex bg-gray-100 p-1 rounded-2xl mb-6">
-          <button onClick={() => { setIsLogin(true); setErrorMsg(''); }} className={`flex-1 py-3 rounded-xl font-bold transition ${isLogin ? 'bg-white text-primary shadow-sm' : 'text-gray-400'}`}>
+      {/* อัปเกรดกล่องให้เป็นสีเทาเข้มใน Dark Mode */}
+      <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-[2rem] shadow-xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-500">
+        <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-2xl mb-6 transition-colors">
+          <button onClick={() => { setIsLogin(true); setErrorMsg(''); }} className={`flex-1 py-3 rounded-xl font-bold transition-all ${isLogin ? 'bg-white dark:bg-gray-700 text-primary dark:text-primary-light shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}>
             เข้าสู่ระบบ
           </button>
-          <button onClick={() => { setIsLogin(false); setErrorMsg(''); }} className={`flex-1 py-3 rounded-xl font-bold transition ${!isLogin ? 'bg-white text-primary shadow-sm' : 'text-gray-400'}`}>
+          <button onClick={() => { setIsLogin(false); setErrorMsg(''); }} className={`flex-1 py-3 rounded-xl font-bold transition-all ${!isLogin ? 'bg-white dark:bg-gray-700 text-primary dark:text-primary-light shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}>
             สมัครสมาชิก
           </button>
         </div>
 
         {errorMsg && (
-          <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm font-medium mb-4 text-center border border-red-100">
+          <div className="bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 p-3 rounded-xl text-sm font-medium mb-4 text-center border border-red-100 dark:border-red-800/50 transition-colors">
             {errorMsg}
           </div>
         )}
 
         <form onSubmit={handleAuth} className="space-y-5">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">อีเมล (Email)</label>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 transition-colors">อีเมล (Email)</label>
             <input 
               type="email" 
               placeholder="example@email.com" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
-              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary outline-none" 
+              // อัปเกรดช่อง Input ให้รองรับ Dark Mode
+              className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary outline-none transition-colors" 
               required 
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">รหัสผ่าน (6 ตัวขึ้นไป)</label>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 transition-colors">รหัสผ่าน (6 ตัวขึ้นไป)</label>
             <input 
               type="password" 
               placeholder="••••••••" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary outline-none" 
+              className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary outline-none transition-colors" 
               required
               minLength={6}
             />
           </div>
-          <button type="submit" className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg hover:bg-primary-dark shadow-lg shadow-primary/25 transition mt-2">
+          <button type="submit" className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg hover:bg-primary-dark dark:hover:bg-indigo-500 shadow-lg shadow-primary/25 transition mt-2">
             {isLogin ? 'เข้าสู่ระบบ' : 'สร้างบัญชี'}
           </button>
         </form>

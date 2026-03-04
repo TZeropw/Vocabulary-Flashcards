@@ -1,112 +1,77 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { BookOpen, Sparkles } from 'lucide-react';
-import { auth } from '@/lib/firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-export default function RootPage() {
+export default function LoginPage() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   
-  const [email, setEmail] = useState(''); 
-  const [password, setPassword] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [username, setUsername] = useState('');
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const displayName = user.email ? user.email.split('@')[0] : 'ผู้ใช้งาน';
-        localStorage.setItem('vocab-username', displayName);
-        router.push('/dashboard');
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
-
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg('');
-
-    if (!email.trim() || !password.trim()) return;
-
-    try {
-      if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-    } catch (err: any) {
-      console.error(err.code);
-      if (err.code === 'auth/email-already-in-use') {
-        setErrorMsg('อีเมลนี้ถูกใช้งานไปแล้ว');
-      } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
-        setErrorMsg('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-      } else if (err.code === 'auth/weak-password') {
-        setErrorMsg('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
-      } else if (err.code === 'auth/invalid-email') {
-        setErrorMsg('รูปแบบอีเมลไม่ถูกต้อง');
-      } else {
-        setErrorMsg('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
-      }
+    
+    if (username.trim()) {
+      localStorage.setItem('vocab-username', username);
+      
+      window.location.href = '/dashboard'; 
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-500">
+    <div className="min-h-[80vh] flex flex-col justify-center items-center">
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center gap-2 mb-2">
-          <BookOpen className="text-primary dark:text-primary-light transition-colors" size={40} />
-          <Sparkles className="text-secondary dark:text-yellow-400 transition-colors" size={24} />
+        <div className="flex justify-center items-center gap-2 text-primary mb-4">
+          <BookOpen size={48} />
+          <Sparkles size={32} className="text-pink-400" />
         </div>
-        <h1 className="text-4xl font-black text-gray-800 dark:text-white transition-colors">คลังคำศัพท์</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-2 transition-colors">รวบรวมและจัดการคำศัพท์ของคุณ</p>
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">คลังคำศัพท์</h1>
+        <p className="text-gray-500">รวบรวมและจัดการคำศัพท์ของคุณ</p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-[2rem] shadow-xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-500">
-        <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-2xl mb-6 transition-colors">
-          <button onClick={() => { setIsLogin(true); setErrorMsg(''); }} className={`flex-1 py-3 rounded-xl font-bold transition-all ${isLogin ? 'bg-white dark:bg-gray-700 text-primary dark:text-primary-light shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}>
-            เข้าสู่ระบบ
-          </button>
-          <button onClick={() => { setIsLogin(false); setErrorMsg(''); }} className={`flex-1 py-3 rounded-xl font-bold transition-all ${!isLogin ? 'bg-white dark:bg-gray-700 text-primary dark:text-primary-light shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}>
-            สมัครสมาชิก
-          </button>
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md transition-all duration-300">
+        <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-lg">
+          <button onClick={() => setIsLogin(true)} className={`flex-1 py-2 rounded-md font-medium transition duration-200 ${isLogin ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>เข้าสู่ระบบ</button>
+          <button onClick={() => setIsLogin(false)} className={`flex-1 py-2 rounded-md font-medium transition duration-200 ${!isLogin ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>สมัครสมาชิก</button>
         </div>
 
-        {errorMsg && (
-          <div className="bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 p-3 rounded-xl text-sm font-medium mb-4 text-center border border-red-100 dark:border-red-800/50 transition-colors">
-            {errorMsg}
-          </div>
-        )}
-
-        <form onSubmit={handleAuth} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 transition-colors">อีเมล (Email)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อผู้ใช้</label>
             <input 
-              type="email" 
-              placeholder="example@email.com" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary outline-none transition-colors" 
+              type="text" 
+              placeholder="ตั้งชื่อเล่นของคุณ..." 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-gray-50 focus:bg-white transition" 
               required 
             />
           </div>
+          
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 transition-colors">รหัสผ่าน (6 ตัวขึ้นไป)</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary outline-none transition-colors" 
-              required
-              minLength={6}
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
+            <input type="password" placeholder="••••••••" className="w-full border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-gray-50 focus:bg-white transition" required />
           </div>
-          <button type="submit" className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-lg hover:bg-primary-dark dark:hover:bg-indigo-500 shadow-lg shadow-primary/25 transition mt-2">
-            {isLogin ? 'เข้าสู่ระบบ' : 'สร้างบัญชี'}
+
+          {!isLogin && (
+             <div className="animate-fade-in-down">
+                <label className="block text-sm font-medium text-gray-700 mb-1">ยืนยันรหัสผ่าน</label>
+                <input type="password" placeholder="••••••••" className="w-full border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-gray-50 focus:bg-white transition" required />
+             </div>
+          )}
+
+          <button type="submit" className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-lg transition shadow-md hover:shadow-lg transform active:scale-95">
+            {isLogin ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก'}
           </button>
         </form>
+
+        <div className="mt-6 pt-6 border-t border-gray-100">
+          <Link href="/dashboard" className="block w-full bg-gray-50 hover:bg-gray-100 text-gray-600 text-center font-medium py-3 rounded-lg transition">
+            ทดลองใช้งาน (ไม่ต้องสมัครสมาชิก)
+          </Link>
+        </div>
       </div>
     </div>
   );
