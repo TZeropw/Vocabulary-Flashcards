@@ -18,7 +18,7 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
     meaning: '',
     category: LEVELS[0],
     example: '',
-    imageUrl: ''
+    imageUrl: '' 
   });
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.word.trim() || !formData.meaning.trim()) return;
+    if (!formData.word.trim()) return;
 
     if (editingCard) {
       const updatedCard: Flashcard = {
@@ -55,7 +55,7 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
         id: Date.now(),
         ...formData,
         category: formData.category || LEVELS[0],
-        weight: 10,
+        weight: 10, 
         createdAt: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
       };
       onAdd(newCard);
@@ -76,8 +76,8 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">ความหมาย <span className="text-red-500">*</span></label>
-          <textarea name="meaning" value={formData.meaning} onChange={handleChange} rows={2} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none transition-colors" required />
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">ความหมาย</label>
+          <textarea name="meaning" value={formData.meaning} onChange={handleChange} rows={2} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none transition-colors" />
         </div>
 
         <div>
