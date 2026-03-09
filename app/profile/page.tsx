@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, updateProfile, sendPasswordResetEmail } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { User, Mail, Calendar, Shield, Activity, Save, Award, Edit3, BookOpen, Clock, Check } from 'lucide-react';
 import Link from 'next/link';
 
@@ -33,11 +33,14 @@ export default function ProfilePage() {
             categoryCount[cat] = (categoryCount[cat] || 0) + 1;
           });
 
-          const storedStreakData = localStorage.getItem('vocab-streak-data');
           let currentStreak = 1;
-          if (storedStreakData) {
-            currentStreak = JSON.parse(storedStreakData).count || 1;
+          const userRef = doc(db, 'users', currentUser.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            currentStreak = userSnap.data().streakCount || 1;
           }
+
+          setStats({ total: totalWords, streak: currentStreak, categories: categoryCount });
 
           setStats({ total: totalWords, streak: currentStreak, categories: categoryCount });
         } catch (error) {
@@ -105,7 +108,6 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         
-        {/* คอลัมน์ซ้าย: ข้อมูลบัญชีและการตั้งค่า */}
         <div className="md:col-span-1 space-y-6">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
             <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2"><Shield size={20} className="text-primary"/> ข้อมูลบัญชี</h2>
@@ -157,7 +159,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* คอลัมน์ขวา: สถิติและกิจกรรม */}
         <div className="md:col-span-2 space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">

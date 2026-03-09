@@ -8,7 +8,6 @@ export default function Navbar() {
   const pathname = usePathname();
   const [username, setUsername] = useState('ผู้ใช้ทดลอง');
 
-  // ดึงชื่อจากเครื่องมาแสดง
   useEffect(() => {
     const savedName = localStorage.getItem('vocab-username');
     if (savedName) setUsername(savedName);

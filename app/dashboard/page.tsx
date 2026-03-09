@@ -3,10 +3,9 @@ import Link from 'next/link';
 import { BookOpen, Flame, Star, ArrowRight, Library, PlayCircle, RefreshCcw, Target } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Flashcard } from '../types';
-
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function DashboardPage() {
   const [username, setUsername] = useState('');
@@ -17,7 +16,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  useEffect(() => {
+ useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'ผู้ใช้งาน');
@@ -26,20 +25,37 @@ export default function DashboardPage() {
         try {
           const q = query(collection(db, 'vocabularies'), where('userId', '==', user.uid));
           const querySnapshot = await getDocs(q);
-          
           const cards: Flashcard[] = [];
-          querySnapshot.forEach((doc) => {
-            cards.push({ id: doc.id, ...doc.data() } as unknown as Flashcard);
-          });
-
+          querySnapshot.forEach((d) => cards.push({ id: d.id, ...d.data() } as unknown as Flashcard));
+          
           setStats({ total: cards.length });
-
           if (cards.length > 0) {
-            const randomIndex = Math.floor(Math.random() * cards.length);
-            setRandomWord(cards[randomIndex]);
-          } else {
-            setRandomWord(null);
+            setRandomWord(cards[Math.floor(Math.random() * cards.length)]);
           }
+          
+          const userRef = doc(db, 'users', user.uid);
+          const userSnap = await getDoc(userRef);
+          const today = new Date().toDateString();
+          let currentStreak = 1;
+
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            const lastDate = new Date(data.lastLoginDate || today);
+            const todayDate = new Date(today);
+            const diffTime = Math.abs(todayDate.getTime() - lastDate.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+              currentStreak = data.streakCount || 1;
+            } else if (diffDays === 1) {
+              currentStreak = (data.streakCount || 0) + 1;
+            } else {
+              currentStreak = 1;
+            }
+          }
+          setStreak(currentStreak);
+          await setDoc(userRef, { lastLoginDate: today, streakCount: currentStreak }, { merge: true });
+
         } catch (error) {
           console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
         }
@@ -47,35 +63,11 @@ export default function DashboardPage() {
         setUsername('ผู้เยี่ยมชม');
         setStats({ total: 0 });
       }
-      setIsLoading(false);
+      setIsLoading(false); 
     });
 
-    handleStreakCalculation();
     return () => unsubscribe();
   }, []);
-
-  const handleStreakCalculation = () => {
-    const today = new Date().toDateString();
-    const storedStreakData = localStorage.getItem('vocab-streak-data');
-    let currentStreak = 1;
-
-    if (storedStreakData) {
-      const { lastLoginDate, count } = JSON.parse(storedStreakData);
-      const lastDate = new Date(lastLoginDate);
-      const todayDate = new Date();
-      lastDate.setHours(0,0,0,0);
-      todayDate.setHours(0,0,0,0);
-      const diffTime = Math.abs(todayDate.getTime() - lastDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-
-      if (diffDays === 0) currentStreak = count;
-      else if (diffDays === 1) currentStreak = count + 1;
-      else currentStreak = 1;
-    }
-    setStreak(currentStreak);
-    localStorage.setItem('vocab-streak-data', JSON.stringify({ lastLoginDate: today, count: currentStreak }));
-  };
-
   
   const milestone = Math.ceil(streak / 7) * 7;
   const progressPercent = ((streak % 7 === 0 ? 7 : streak % 7) / 7) * 100;

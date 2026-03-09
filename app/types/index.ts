@@ -1,8 +1,11 @@
 export interface Flashcard {
-  id: number;
+  id: any;
   word: string;
   meaning: string;
   category: string;
-  example: string;
+  example?: string;
   createdAt: string;
+  userId?: string;
+  imageUrl?: string;
+  weight?: number;
 }

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Flashcard } from '../types';
-import { Plus, Tag, Save, X } from 'lucide-react';
+import { Plus, Tag, Save, X, Image as ImageIcon } from 'lucide-react';
 
 interface Props {
   onAdd: (card: Flashcard) => void;
@@ -10,24 +10,15 @@ interface Props {
   onCancelEdit: () => void; 
 }
 
-const CATEGORIES = [
-  "ทั่วไป",
-  "อาหารและเครื่องดื่ม",
-  "การเดินทาง/ท่องเที่ยว",
-  "การทำงาน/อาชีพ",
-  "ของใช้ในบ้าน",
-  "อารมณ์/ความรู้สึก",
-  "สุขภาพ/ร่างกาย",
-  "วิชาการ/การศึกษา",
-  "สแลง (Slang)"
-];
+const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit }: Props) {
   const [formData, setFormData] = useState({
     word: '',
     meaning: '',
-    category: CATEGORIES[0],
-    example: ''
+    category: LEVELS[0],
+    example: '',
+    imageUrl: ''
   });
 
   useEffect(() => {
@@ -36,10 +27,11 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
         word: editingCard.word,
         meaning: editingCard.meaning,
         category: editingCard.category,
-        example: editingCard.example || ''
+        example: editingCard.example || '',
+        imageUrl: editingCard.imageUrl || ''
       });
     } else {
-      setFormData({ word: '', meaning: '', category: CATEGORIES[0], example: '' });
+      setFormData({ word: '', meaning: '', category: LEVELS[0], example: '', imageUrl: '' });
     }
   }, [editingCard]);
 
@@ -55,19 +47,20 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
       const updatedCard: Flashcard = {
         ...editingCard, 
         ...formData,    
-        category: formData.category || CATEGORIES[0]
+        category: formData.category || LEVELS[0]
       };
       onUpdate(updatedCard);
     } else {
       const newCard: Flashcard = {
         id: Date.now(),
         ...formData,
-        category: formData.category || CATEGORIES[0],
+        category: formData.category || LEVELS[0],
+        weight: 10,
         createdAt: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
       };
       onAdd(newCard);
     }
-    setFormData({ ...formData, word: '', meaning: '', example: '' });
+    setFormData({ ...formData, word: '', meaning: '', example: '', imageUrl: '' });
   };
 
   return (
@@ -84,16 +77,19 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">ความหมาย <span className="text-red-500">*</span></label>
-          <textarea name="meaning" value={formData.meaning} onChange={handleChange} rows={3} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none transition-colors" required />
+          <textarea name="meaning" value={formData.meaning} onChange={handleChange} rows={2} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none transition-colors" required />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1 transition-colors"><Tag size={14}/> หมวดหมู่</label>
-          <div className="relative">
-            <select name="category" value={formData.category} onChange={handleChange} className="w-full appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none cursor-pointer transition-colors">
-              {CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-            </select>
-          </div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1 transition-colors"><Tag size={14}/> ระดับภาษา (CEFR)</label>
+          <select name="category" value={formData.category} onChange={handleChange} className="w-full appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none cursor-pointer transition-colors">
+            {LEVELS.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1 transition-colors"><ImageIcon size={14}/> ลิงก์รูปภาพประกอบ (URL)</label>
+          <input type="url" name="imageUrl" placeholder="https://example.com/image.jpg" value={formData.imageUrl} onChange={handleChange} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none transition-colors" />
         </div>
 
         <div>
@@ -101,7 +97,7 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
           <textarea name="example" value={formData.example} onChange={handleChange} rows={2} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none transition-colors" />
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 pt-2">
           {editingCard && (
             <button type="button" onClick={onCancelEdit} className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
               <X size={20} /> ยกเลิก
