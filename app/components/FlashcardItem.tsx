@@ -22,6 +22,10 @@ export default function FlashcardItem({ data, onDelete, onEdit }: Props) {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-2xl font-bold text-primary dark:text-primary-light mb-2 group-hover:text-primary-dark dark:group-hover:text-primary transition-colors">{data.word}</h3>
+
+          {data.partOfSpeech && data.partOfSpeech !== "- ไม่ระบุ -" && (
+            <span className="block text-sm font-medium text-gray-400 dark:text-gray-500 italic mb-3">{data.partOfSpeech}</span>
+          )}
             <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 transition-colors">
               <span className="bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-light px-3 py-1 rounded-full font-bold">{data.category}</span>
               <div className="flex items-center gap-1">

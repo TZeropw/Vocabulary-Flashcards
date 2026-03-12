@@ -107,7 +107,7 @@ export default function ReviewPage() {
             <div className="flex items-center gap-4">
               <div className="bg-white/20 p-3 rounded-full"><Grid size={24}/></div>
               <div className="text-left">
-                <h3 className="font-bold text-lg">สุ่มทั้งหมด (อัจฉริยะ)</h3>
+                <h3 className="font-bold text-lg">สุ่มทั้งหมด</h3>
                 <p className="text-sm opacity-80">สุ่มตามน้ำหนักความจำ ({allCards.length} คำ)</p>
               </div>
             </div>
@@ -185,6 +185,9 @@ export default function ReviewPage() {
                 )}
 
                 <h1 className="text-4xl md:text-5xl font-black text-gray-800 dark:text-white break-words w-full">{currentCard?.word}</h1>
+                {currentCard?.partOfSpeech && currentCard?.partOfSpeech !== "- ไม่ระบุ -" && (
+                  <p className="text-lg text-gray-400 dark:text-gray-500 italic mt-2">{currentCard.partOfSpeech}</p>
+                )}
                 <p className="absolute bottom-8 text-sm text-primary/60 dark:text-primary-light/60 font-medium animate-pulse">แตะเพื่อดูเฉลย</p>
             </div>
             

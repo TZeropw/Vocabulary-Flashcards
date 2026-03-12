@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Flashcard } from '../types';
-import { Plus, Tag, Save, X, Image as ImageIcon } from 'lucide-react';
+import { Plus, Tag, Save, X, Image as ImageIcon, Type } from 'lucide-react';
 
 interface Props {
   onAdd: (card: Flashcard) => void;
@@ -11,12 +11,14 @@ interface Props {
 }
 
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
+const PARTS_OF_SPEECH = ["- ไม่ระบุ -", "Noun (n.)", "Verb (v.)", "Adjective (adj.)", "Adverb (adv.)", "Pronoun (pron.)", "Preposition (prep.)", "Conjunction (conj.)", "Phrase (วลี)"];
 
 export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit }: Props) {
   const [formData, setFormData] = useState({
     word: '',
     meaning: '',
     category: LEVELS[0],
+    partOfSpeech: PARTS_OF_SPEECH[0],
     example: '',
     imageUrl: '' 
   });
@@ -27,11 +29,12 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
         word: editingCard.word,
         meaning: editingCard.meaning,
         category: editingCard.category,
+        partOfSpeech: editingCard.partOfSpeech || PARTS_OF_SPEECH[0],
         example: editingCard.example || '',
         imageUrl: editingCard.imageUrl || ''
       });
     } else {
-      setFormData({ word: '', meaning: '', category: LEVELS[0], example: '', imageUrl: '' });
+      setFormData({ word: '', meaning: '', category: LEVELS[0], partOfSpeech: PARTS_OF_SPEECH[0], example: '', imageUrl: '' });
     }
   }, [editingCard]);
 
@@ -47,7 +50,8 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
       const updatedCard: Flashcard = {
         ...editingCard, 
         ...formData,    
-        category: formData.category || LEVELS[0]
+        category: formData.category || LEVELS[0],
+        partOfSpeech: formData.partOfSpeech
       };
       onUpdate(updatedCard);
     } else {
@@ -55,12 +59,13 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
         id: Date.now(),
         ...formData,
         category: formData.category || LEVELS[0],
+        partOfSpeech: formData.partOfSpeech,
         weight: 10, 
         createdAt: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
       };
       onAdd(newCard);
     }
-    setFormData({ ...formData, word: '', meaning: '', example: '', imageUrl: '' });
+    setFormData({ ...formData, word: '', meaning: '', example: '', imageUrl: '', partOfSpeech: PARTS_OF_SPEECH[0] });
   };
 
   return (
@@ -80,11 +85,19 @@ export default function CreateForm({ onAdd, onUpdate, editingCard, onCancelEdit 
           <textarea name="meaning" value={formData.meaning} onChange={handleChange} rows={2} className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none transition-colors" />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1 transition-colors"><Tag size={14}/> ระดับภาษา (CEFR)</label>
-          <select name="category" value={formData.category} onChange={handleChange} className="w-full appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none cursor-pointer transition-colors">
-            {LEVELS.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1 transition-colors"><Tag size={14}/> ระดับภาษา</label>
+            <select name="category" value={formData.category} onChange={handleChange} className="w-full appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none cursor-pointer transition-colors">
+              {LEVELS.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1 transition-colors"><Type size={14}/> ชนิดของคำ</label>
+            <select name="partOfSpeech" value={formData.partOfSpeech} onChange={handleChange} className="w-full appearance-none bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none cursor-pointer transition-colors text-sm">
+              {PARTS_OF_SPEECH.map((pos) => <option key={pos} value={pos}>{pos}</option>)}
+            </select>
+          </div>
         </div>
 
         <div>

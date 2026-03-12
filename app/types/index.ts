@@ -3,6 +3,7 @@ export interface Flashcard {
   word: string;
   meaning: string;
   category: string;
+  partOfSpeech?: string;
   example?: string;
   createdAt: string;
   userId?: string;
