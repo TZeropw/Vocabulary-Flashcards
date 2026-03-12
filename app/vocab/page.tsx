@@ -10,9 +10,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 
 const FILTER_CATEGORIES = [
-  "ทั้งหมด", "ทั่วไป", "อาหารและเครื่องดื่ม", "การเดินทาง/ท่องเที่ยว",
-  "การทำงาน/อาชีพ", "ของใช้ในบ้าน", "อารมณ์/ความรู้สึก",
-  "สุขภาพ/ร่างกาย", "วิชาการ/การศึกษา", "สแลง (Slang)"
+  "ทั้งหมด", "A1", "A2", "B1", "B2", "C1", "C2"
 ];
 
 export default function VocabPage() {
@@ -46,7 +44,8 @@ export default function VocabPage() {
             } as unknown as Flashcard);
           });
           
-          setFlashcards(cards.reverse());
+          // เรียงจากใหม่ไปเก่า
+          setFlashcards(cards.sort((a, b) => b.id - a.id));
         } catch (error) {
           console.error("โหลดข้อมูลล้มเหลว:", error);
         }
@@ -79,7 +78,7 @@ export default function VocabPage() {
         id: docRef.id, 
         ...cardData, 
         userId,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
       } as Flashcard;
       
       setFlashcards([addedCard, ...flashcards]);
@@ -147,7 +146,7 @@ export default function VocabPage() {
           </div>
           <div className="relative min-w-[180px]">
             <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
-            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full pl-10 pr-8 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer transition-colors">
+            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full pl-10 pr-8 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer transition-colors text-sm">
               {FILTER_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
           </div>
